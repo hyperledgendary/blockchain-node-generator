@@ -1,9 +1,9 @@
-import { Container } from 'node-docker-api/lib/container';
 import { Node } from './node';
+import { Container, ContainerInfo } from 'dockerode';
 
 export class CA extends Node {
-    constructor(container: Container) {
-        super(container, '', 'FABRIC_CA_SERVER_TLS_ENABLED', 'FABRIC_CA_SERVER_TLS_CERTFILE');
+    constructor(container: Container, containerInfo: ContainerInfo) {
+        super(container, containerInfo, '', 'FABRIC_CA_SERVER_TLS_ENABLED', 'FABRIC_CA_SERVER_TLS_CERTFILE');
     }
 
     async generateConfig() {

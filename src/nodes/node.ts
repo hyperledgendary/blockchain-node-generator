@@ -1,14 +1,16 @@
-import { Container } from 'node-docker-api/src/container';
 import { getContainerImageType, getContainerName, getMspId, getPeerTLSCert, isTls, getContainerAddress, getProtocol, getNodeType } from '../helpers';
+import { ContainerInfo, Container } from 'dockerode';
 
 export class Node {
     container: Container;
+    containerInfo: ContainerInfo;
     mspIDEnvVar: string;
     isTLSEnabledEnvVar: string;
     tlsCertPathEnvVar: string;
 
-    constructor(container: Container, mspIDEnvVar: string, isTLSEnabledEnvVar: string, tlsCertPathEnvVar: string) {
+    constructor(container: Container, containerInfo: ContainerInfo, mspIDEnvVar: string, isTLSEnabledEnvVar: string, tlsCertPathEnvVar: string) {
         this.container = container;
+        this.containerInfo = containerInfo;
         this.isTLSEnabledEnvVar = isTLSEnabledEnvVar;
         this.tlsCertPathEnvVar = tlsCertPathEnvVar;
         this.mspIDEnvVar = mspIDEnvVar;
@@ -44,23 +46,23 @@ export class Node {
     }
 
     getContainerName() {
-        return getContainerName(this.container);
+        return getContainerName(this.containerInfo);
     }
 
     getContainerImageType() {
-        return getContainerImageType(this.container);
+        return getContainerImageType(this.containerInfo);
     }
 
     getContainerAddress() {
-        return getContainerAddress(this.container);
+        return getContainerAddress(this.containerInfo);
     }
 
     getProtocol() {
-        return getProtocol(this.container, this.isTLSEnabledEnvVar);
+        return getProtocol(this.container, this.containerInfo, this.isTLSEnabledEnvVar);
     }
 
     getNodeType() {
-        return getNodeType(this.container);
+        return getNodeType(this.containerInfo);
     }
 
     isRunningLocally() {
