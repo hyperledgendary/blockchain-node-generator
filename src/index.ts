@@ -1,19 +1,27 @@
-import { Docker } from 'node-docker-api';
-import { CA } from './nodes/ca';
-import { Peer } from './nodes/peer';
-import { Orderer } from './nodes/orderer';
-import { DockerHelper } from './docker-helper';
 import { ContainerInfo } from 'dockerode';
+import { DockerHelper } from './docker-helper';
+import { CA } from './nodes/ca';
+import { Orderer } from './nodes/orderer';
+import { Peer } from './nodes/peer';
+import inquirer = require('inquirer');
+import { writeFileSync } from 'fs';
 
-// TODO: Make this available from a configuration file
-const socket = '/var/run/docker.sock';
-const networkId = '692f55707a90fa9085a819b2b2cb1f6a2bb4f9ba20a79ed5d835ec47ca63d69f';
-const PEER_IMAGE_NAME = 'hyperledger/fabric-peer';
-const ORDERER_IMAGE_NAME = 'hyperledger/fabric-orderer';
-const CA_IMAGE_NAME = 'hyperledger/fabric-ca';
+const defaultConfig = {
+    socket: '/var/run/docker.sock',
+    PEER_IMAGE_NAME: 'hyperledger/fabric-peer',
+    ORDERER_IMAGE_NAME: 'hyperledger/fabric-orderer',
+    CA_IMAGE_NAME: 'hyperledger/fabric-ca',
+    env_file: 'env.json'
+};
+
+const config = Object.assign({}, defaultConfig);
+
+let networkId = '';
 
 async function main() {
-    const newDocker = new DockerHelper(socket);
+    const newDocker = new DockerHelper(config.socket);
+    const answers: any = await getDockerNetwork(newDocker);
+    networkId = answers.networkId;
 
     let list = await newDocker.list();
     list = list.filter(filterByNetwork);
@@ -40,7 +48,7 @@ async function main() {
         const ca = new CA(container, containerInfo);
         configs.push(ca.generateConfig());
     }
-    console.log(JSON.stringify(await Promise.all(configs)));
+    writeFileSync(config.env_file, JSON.stringify(await Promise.all(configs)));
 }
 
 function filterByNetwork(container: ContainerInfo) {
@@ -51,16 +59,37 @@ function filterByNetwork(container: ContainerInfo) {
 }
 
 function isPeer(container: ContainerInfo): boolean {
-    return container.Image.indexOf(PEER_IMAGE_NAME) !== -1;
+    return container.Image.indexOf(config.PEER_IMAGE_NAME) !== -1;
 }
 
 function isOrderer(container: ContainerInfo): boolean {
-    return container.Image.indexOf(ORDERER_IMAGE_NAME) !== -1;
+    return container.Image.indexOf(config.ORDERER_IMAGE_NAME) !== -1;
 }
 
 function isCA(container: ContainerInfo): boolean {
-    return container.Image.indexOf(CA_IMAGE_NAME) !== -1;
+    return container.Image.indexOf(config.CA_IMAGE_NAME) !== -1;
 }
 
-main()
-    .catch(console.error) ;
+async function getDockerNetwork(docker: DockerHelper) {
+    const networks = await docker.getNetworks();
+    const networkMap = new Map();
+
+    for (const network of networks) {
+        networkMap.set(network.Name, network.Id);
+    }
+    const answers = await inquirer.prompt({
+        type: 'list',
+        name: 'networkId',
+        message: 'Which docker network do you want to use?',
+        default: 'node_default',
+        validate: (answer: string) => {
+            return networkMap.has(answer);
+        },
+        choices: Array.from(networkMap.keys())
+    } as any) as any;
+
+    answers.networkId = networkMap.get(answers.networkId);
+    return answers;
+}
+
+main().catch(console.error);
