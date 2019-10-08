@@ -1,8 +1,8 @@
 import { Node } from './node';
-import { Container } from 'node-docker-api/src/container';
+import { ContainerInfo, Container } from 'dockerode';
 
 export class Peer extends Node {
-    constructor(container: Container) {
-        super(container, 'CORE_PEER_LOCALMSPID', 'CORE_PEER_TLS_ENABLED', 'CORE_PEER_TLS_ROOTCERT_FILE');
+    constructor(container: Container, containerInfo: ContainerInfo) {
+        super(container, containerInfo, 'CORE_PEER_LOCALMSPID', 'CORE_PEER_TLS_ENABLED', 'CORE_PEER_TLS_ROOTCERT_FILE');
     }
 }

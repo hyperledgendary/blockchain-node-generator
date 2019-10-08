@@ -1,4 +1,6 @@
-import { Container } from 'node-docker-api/src/container';
+import { ContainerInfo } from 'dockerode';
+import Dockerode = require('dockerode');
+import { ECANCELED } from 'constants';
 
 const PEER_IMAGE_NAME = 'hyperledger/fabric-peer';
 const ORDERER_IMAGE_NAME = 'hyperledger/fabric-orderer';
@@ -10,15 +12,15 @@ const nodeTypes: any = {
     [CA_IMAGE_NAME]: 'fabric-ca'
 };
 
-export async function isTls(container: Container, isTLSEnvVar: string): Promise<string> {
+export async function isTls(container: Dockerode.Container, isTLSEnvVar: string): Promise<string> {
     const command = `echo $${isTLSEnvVar}`;
     const result = await executeCommand(container, ['/bin/bash', '-c', command]);
     return result.toString('utf8');
 }
 
-export async function getProtocol(container: Container, isTLSEnvVar: string) {
+export async function getProtocol(container: Dockerode.Container, containerInfo: ContainerInfo, isTLSEnvVar: string) {
     const isTLS = await isTls(container, isTLSEnvVar);
-    const containerImageType = getContainerImageType(container);
+    const containerImageType = getContainerImageType(containerInfo);
 
     switch (containerImageType) {
         case PEER_IMAGE_NAME:
@@ -29,7 +31,7 @@ export async function getProtocol(container: Container, isTLSEnvVar: string) {
     }
 }
 
-export async function getPeerTLSCert(container: Container, tlsRootCertEnvVar: string): Promise<string> {
+export async function getPeerTLSCert(container: Dockerode.Container, tlsRootCertEnvVar: string): Promise<string> {
     const command = `cat $${tlsRootCertEnvVar}`;
     const file = await executeCommand(container, ['/bin/bash', '-c', command]);
     if (file.length === 0) {
@@ -39,40 +41,38 @@ export async function getPeerTLSCert(container: Container, tlsRootCertEnvVar: st
     return pem;
 }
 
-export async function getMspId(container: Container, mspIDEnvVar: string): Promise<string> {
+export async function getMspId(container: Dockerode.Container, mspIDEnvVar: string): Promise<string> {
     const command = `echo $${mspIDEnvVar}`;
     const result = await executeCommand(container, ['/bin/bash', '-c', command]);
     return result.toString('utf8').trim();
 }
 
-export function getContainerImageType(container: Container): string {
-    return (container.data as any).Image.split(':')[0];
+export function getContainerImageType(container: ContainerInfo): string {
+    return (container as any).Image.split(':')[0];
 }
 
-export function getContainerAddress(container: Container): string {
-    const data: any = container.data;
-    const ports = data.Ports;
+export function getContainerAddress(container: ContainerInfo): string {
+    const ports = container.Ports;
     const port = ports[0];
     let parts: string[] = [];
     if (port) {
-        parts = [port.IP, port.PublicPort];
+        parts = [port.IP, port.PublicPort as any];
     }
     return parts.join(':');
 }
 
-export function getContainerName(container: Container): string {
-    const data = (container.data as any);
-    const names: string[] = data.Names;
+export function getContainerName(container: ContainerInfo): string {
+    const names: string[] = container.Names;
     const name: string = names[0];
     return name.substr(1);
 }
 
-export function getNodeType(container: Container): string {
+export function getNodeType(container: ContainerInfo): string {
     const name = getContainerImageType(container);
     return nodeTypes[name];
 }
 
-async function streamLog(stream: any): Promise<Buffer> {
+export async function streamLog(stream: any): Promise<Buffer> {
     let data: string = '';
     return new Promise((resolve, reject) => {
         stream.on('data', (d: any) => {
@@ -96,12 +96,51 @@ async function streamLog(stream: any): Promise<Buffer> {
     });
 }
 
-async function executeCommand(container: Container, command: string[]): Promise<Buffer> {
-    const exec = await container.exec.create({
+export async function executeCommand(container: Dockerode.Container, command: string[]): Promise <Buffer > {
+    // const exec = await container.exec.create({
+    //     AttachStdout: true,
+    //     AttachStderr: false,
+    //     Cmd: command
+    // });
+    // const stream = await exec.start({Detach: false});
+    // return streamLog(stream);
+    const options = {
+        Cmd: command,
         AttachStdout: true,
         AttachStderr: false,
-        Cmd: command
+        statusCodes: {
+            200: true,
+            404: 'no such exec instance',
+            409: 'container is paused'
+        }
+    };
+    const data = await getData(container, options);
+
+    return streamLog(data);
+}
+
+async function getExec(container: Dockerode.Container, options: any) {
+    const exec: Dockerode.Exec = await new Promise((resolve, reject) => {
+        container.exec(options, (err, ex) => {
+            if (err) {
+                return reject(err);
+            }
+            return resolve(ex);
+        });
     });
-    const stream = await exec.start({Detach: false});
-    return streamLog(stream);
+    return exec;
+}
+
+async function getData(container: Dockerode.Container, options: any) {
+    const exec = await getExec(container, options);
+    const data = await new Promise((resolve, reject) => {
+        // tslint:disable-next-line: no-floating-promises
+        exec.start((err: any, stream: any) => {
+            if (err) {
+                return reject(err);
+            }
+            resolve(stream);
+        });
+    });
+    return data;
 }

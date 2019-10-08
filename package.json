@@ -25,11 +25,13 @@
   },
   "homepage": "https://github.com/liam-grace/node-file-generator#readme",
   "devDependencies": {
+    "@types/dockerode": "^2.5.20",
     "@types/node": "^12.7.9",
     "tslint": "^5.20.0",
     "typescript": "^3.6.3"
   },
   "dependencies": {
+    "dockerode": "^3.0.2",
     "node-docker-api": "^1.1.22"
   }
 }

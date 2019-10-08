@@ -1,7 +1,9 @@
 import { Docker } from 'node-docker-api';
-import { Container } from 'node-docker-api/src/container';
 import { CA } from './nodes/ca';
 import { Peer } from './nodes/peer';
+import { Orderer } from './nodes/orderer';
+import { DockerHelper } from './docker-helper';
+import { ContainerInfo } from 'dockerode';
 
 // TODO: Make this available from a configuration file
 const socket = '/var/run/docker.sock';
@@ -11,9 +13,9 @@ const ORDERER_IMAGE_NAME = 'hyperledger/fabric-orderer';
 const CA_IMAGE_NAME = 'hyperledger/fabric-ca';
 
 async function main() {
-    const docker = new Docker({socketPath: socket});
+    const newDocker = new DockerHelper(socket);
 
-    let list = await docker.container.list();
+    let list = await newDocker.list();
     list = list.filter(filterByNetwork);
     const configs = [];
 
@@ -21,41 +23,43 @@ async function main() {
     const orderers = list.filter(isOrderer);
     const cas = list.filter(isCA);
 
-    for (const container of peers) {
-        const peer = new Peer(container);
+    for (const containerInfo of peers) {
+        const container = await newDocker.getContainer(containerInfo);
+        const peer = new Peer(container, containerInfo);
         configs.push(peer.generateConfig());
     }
-    // for (const container of orderers) {
-    //     configs.push(await generateConfig(container));
-    // }
-    for (const container of cas) {
-        const ca = new CA(container);
+
+    for (const containerInfo of orderers) {
+        const container = await newDocker.getContainer(containerInfo);
+        const peer = new Orderer(container, containerInfo);
+        configs.push(peer.generateConfig());
+    }
+
+    for (const containerInfo of cas) {
+        const container = await newDocker.getContainer(containerInfo);
+        const ca = new CA(container, containerInfo);
         configs.push(ca.generateConfig());
     }
     console.log(JSON.stringify(await Promise.all(configs)));
 }
 
-function filterByNetwork(container: Container) {
-    const data: any = container.data;
-    const networkSettings = data.NetworkSettings;
+function filterByNetwork(container: ContainerInfo) {
+    const networkSettings = container.NetworkSettings;
     const networks = networkSettings.Networks;
     const nodeDefault = networks.node_default;
     return nodeDefault.NetworkID === networkId;
 }
 
-function isPeer(container: Container): boolean {
-    const data: any = container.data;
-    return data.Image.indexOf(PEER_IMAGE_NAME) !== -1;
+function isPeer(container: ContainerInfo): boolean {
+    return container.Image.indexOf(PEER_IMAGE_NAME) !== -1;
 }
 
-function isOrderer(container: Container): boolean {
-    const data: any = container.data;
-    return data.Image.indexOf(ORDERER_IMAGE_NAME) !== -1;
+function isOrderer(container: ContainerInfo): boolean {
+    return container.Image.indexOf(ORDERER_IMAGE_NAME) !== -1;
 }
 
-function isCA(container: Container): boolean {
-    const data: any = container.data;
-    return data.Image.indexOf(CA_IMAGE_NAME) !== -1;
+function isCA(container: ContainerInfo): boolean {
+    return container.Image.indexOf(CA_IMAGE_NAME) !== -1;
 }
 
 main()
