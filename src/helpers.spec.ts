@@ -11,13 +11,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-import sinonChai from 'sinon-chai';
-import chaiAsPromised from 'chai-as-promised';
 import * as chai from 'chai';
-import Sinon, * as sinon from 'sinon';
-import * as helpers from './helpers';
-import { Container, Exec, ContainerInfo } from 'dockerode';
+import chaiAsPromised from 'chai-as-promised';
+import { Container, ContainerInfo, Exec } from 'dockerode';
+import * as sinon from 'sinon';
+import sinonChai from 'sinon-chai';
 import { Readable } from 'stream';
+import * as helpers from './helpers';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
