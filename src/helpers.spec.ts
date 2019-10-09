@@ -1,3 +1,16 @@
+/*
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as chai from 'chai';
@@ -32,6 +45,41 @@ describe('Helpers', () => {
         beforeEach(() => {
             streamStub = new Readable();
             streamStub._read = () => { /* do nothing */ };
+        });
+
+        it('should throw if the stream errors whilst data is being sent', async () => {
+            containerStub.exec.yields(null, execStub);
+            execStub.start.yields(null, streamStub);
+            const promise = helpers.isTls(containerStub as Container, 'SOME_ENV_VAR');
+
+            await sleep();
+            streamStub.emit('data', Buffer.from('true'));
+            streamStub.emit('error', new Error('Stream failed'));
+            streamStub.emit('end');
+            await expect(promise).to.be.rejectedWith('Stream failed');
+            expect(containerStub.exec).to.have.been.calledWith({
+                AttachStderr: false,
+                AttachStdout: true,
+                Cmd: ['/bin/bash', '-c', 'echo $SOME_ENV_VAR'],
+                statusCodes: { 200: true, 404: 'no such exec instance', 409: 'container is paused'}
+            });
+        });
+
+        it('should throw if the stream errors', async () => {
+            containerStub.exec.yields(null, execStub);
+            execStub.start.yields(null, streamStub);
+            const promise = helpers.isTls(containerStub as Container, 'SOME_ENV_VAR');
+
+            await sleep();
+            streamStub.emit('error', new Error('Stream failed'));
+            streamStub.emit('end');
+            await expect(promise).to.be.rejectedWith('Stream failed');
+            expect(containerStub.exec).to.have.been.calledWith({
+                AttachStderr: false,
+                AttachStdout: true,
+                Cmd: ['/bin/bash', '-c', 'echo $SOME_ENV_VAR'],
+                statusCodes: { 200: true, 404: 'no such exec instance', 409: 'container is paused'}
+            });
         });
 
         it('should return the stringified result of a Buffer', async () => {
@@ -189,6 +237,50 @@ describe('Helpers', () => {
                 Cmd: ['/bin/bash', '-c', 'cat $MSP_ENV'],
                 statusCodes: { 200: true, 404: 'no such exec instance', 409: 'container is paused'}
             });
+        });
+    });
+
+    describe('#getContainerImageType', () => {
+        it('should get the image type', () => {
+            const containerInfo = {Image: 'fabric-peer:1.4.4'} as ContainerInfo;
+            expect(helpers.getContainerImageType(containerInfo)).to.equal('fabric-peer');
+        });
+    });
+
+    describe('#getContainerName', () => {
+        it('should get the container name', () => {
+            // Docker adds random character before the name
+            const containerInfo = {Names: ['*ContainerName']} as ContainerInfo;
+            expect(helpers.getContainerName(containerInfo)).to.equal('ContainerName');
+        });
+
+        it('should get the first container name', () => {
+            const containerInfo = {Names: ['*ContainerName0', '*ContainerName1']} as ContainerInfo;
+            expect(helpers.getContainerName(containerInfo)).to.equal('ContainerName0');
+        });
+    });
+
+    describe('#getNodeType', () => {
+        it('should return the correct node type', () => {
+            const containerInfo = {Image: 'hyperledger/fabric-peer:1.4.4'} as ContainerInfo;
+            expect(helpers.getNodeType(containerInfo)).to.equal('fabric-peer');
+        });
+    });
+
+    describe('#getExec', () => {
+        it('should throw if getting the exec fails', async () => {
+            containerStub.exec.onFirstCall().yields(new Error('Exec fail'), null);
+
+            await expect(helpers.getPeerTLSCert(containerStub as Container, 'MSP_ENV')).to.be.rejectedWith('Exec fail');
+        });
+    });
+
+    describe('#getData', () => {
+        it('should throw if starting exec fails', async () => {
+            containerStub.exec.onFirstCall().yields(null, execStub);
+            execStub.start.onFirstCall().yields(new Error('Start fail'), null);
+
+            await expect(helpers.getPeerTLSCert(containerStub as Container, 'MSP_ENV')).to.be.rejectedWith('Start fail');
         });
     });
 });
