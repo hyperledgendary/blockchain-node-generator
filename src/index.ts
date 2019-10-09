@@ -32,12 +32,12 @@ const defaultConfig = {
 
 const config = Object.assign({}, defaultConfig);
 
-let networkId = 'No network set';
+let networkName = 'No network set';
 
 async function main(network?: string) {
     const newDocker = new DockerHelper(config.socket);
     const answers: any = await getDockerNetwork(newDocker, network);
-    networkId = answers.networkId;
+    networkName = answers.networkName;
 
     let list = await newDocker.list();
     list = list.filter(filterByNetwork);
@@ -70,11 +70,11 @@ async function main(network?: string) {
 function filterByNetwork(container: ContainerInfo) {
     const networkSettings = container.NetworkSettings;
     const networks = networkSettings.Networks;
-    const nodeDefault = networks.node_default;
-    if (!nodeDefault) {
-        throw new Error('node_default does not exist');
+    if (container.State !== 'running') {
+        return false;
     }
-    return nodeDefault.NetworkID === networkId;
+
+    return !!networks[networkName];
 }
 
 function isPeer(container: ContainerInfo): boolean {
@@ -108,12 +108,11 @@ async function getDockerNetwork(docker: DockerHelper, network?: string) {
             },
             choices: Array.from(networkMap.keys())
         } as any) as any;
-        answers.networkId = networkMap.get(answers.networkId);
     } else {
         if (!networkMap.has(network)) {
             throw new Error(`Network ${network} does not exist`);
         }
-        answers = {networkId: networkMap.get(network)};
+        answers = {networkName: network};
     }
 
     return answers;
