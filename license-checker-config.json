@@ -1,5 +1,5 @@
 {
-    "ignore": [".git/**", "coverage/**", ".DS_Store"],
+    "ignore": [".git/**", "coverage/**", ".DS_Store", "**/*.md"],
     "license": "LICENSE.txt",
     "licenseFormats": {
         "dotfile": {
