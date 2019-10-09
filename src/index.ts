@@ -5,6 +5,9 @@ import { Orderer } from './nodes/orderer';
 import { Peer } from './nodes/peer';
 import inquirer = require('inquirer');
 import { writeFileSync } from 'fs';
+import yargs = require('yargs');
+
+const argv: any = yargs.argv;
 
 const defaultConfig = {
     socket: '/var/run/docker.sock',
@@ -17,11 +20,10 @@ const defaultConfig = {
 const config = Object.assign({}, defaultConfig);
 
 let networkId = 'No network set';
-const networkName = process.argv[0];
 
-async function main() {
+async function main(network?: string) {
     const newDocker = new DockerHelper(config.socket);
-    const answers: any = await getDockerNetwork(newDocker, networkName);
+    const answers: any = await getDockerNetwork(newDocker, network);
     networkId = answers.networkId;
 
     let list = await newDocker.list();
@@ -56,6 +58,9 @@ function filterByNetwork(container: ContainerInfo) {
     const networkSettings = container.NetworkSettings;
     const networks = networkSettings.Networks;
     const nodeDefault = networks.node_default;
+    if (!nodeDefault) {
+        throw new Error('node_default does not exist');
+    }
     return nodeDefault.NetworkID === networkId;
 }
 
@@ -92,10 +97,13 @@ async function getDockerNetwork(docker: DockerHelper, network?: string) {
         } as any) as any;
         answers.networkId = networkMap.get(answers.networkId);
     } else {
-        answers = {networkId: networkMap.get(networkName)};
+        if (!networkMap.has(network)) {
+            throw new Error(`Network ${network} does not exist`);
+        }
+        answers = {networkId: networkMap.get(network)};
     }
 
     return answers;
 }
 
-main().catch(console.error);
+main(argv.networkName).catch(console.error);

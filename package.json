@@ -36,6 +36,7 @@
     "@types/sinon": "^7.5.0",
     "@types/sinon-as-promised": "^4.0.12",
     "@types/sinon-chai": "^3.2.3",
+    "@types/yargs": "^13.0.3",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "istanbul": "^0.4.5",
@@ -50,7 +51,8 @@
   },
   "dependencies": {
     "dockerode": "^3.0.2",
-    "inquirer": "^7.0.0"
+    "inquirer": "^7.0.0",
+    "yargs": "^14.2.0"
   },
   "nyc": {
     "require": [
