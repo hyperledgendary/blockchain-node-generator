@@ -1,0 +1,5 @@
+{
+    "branch": "next",
+    "plugins": ["@semantic-release/npm", "@semantic-release/github"],
+    "dryRun": true
+}

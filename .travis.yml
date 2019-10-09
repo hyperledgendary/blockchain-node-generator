@@ -1,7 +1,16 @@
 language: node_js
 node_js:
-  - lts/*
-
-branches:
-  only:
-    - master
+- lts/*
+jobs:
+  include:
+  - stage: release
+    node_js: lts/*
+    deploy:
+      provider: script
+      skip_cleanup: true
+      script:
+      - npx semantic-release
+env:
+  global:
+  - secure: XTI8OI/S/J93sHGNw6jX6HShC4o3Tcqb0uZYMXXbO2Yk57UmPtUgOek0tYkG94nnO7O8pLnvPk8vCfeZhuW87KExzrES17xLHUkaFOgcgREPteoCY0tYMw+uSFLRz2XzKXN59s2OAbYpwt1K7NydjzH8N1ahRYpJLf6cvWJTkUucck6VJ9UPQaXpqHOZ7Zt3zhL7drpK+GuCnB2IFkg8dQixGSCtRnlEH1jpSqAILzY4OEn7rSbWZ6BdXNHwiZ0Axp/zY3WvCAeon1hChZztWo4tGzbQdnBQHaivbfrO81i/KQZspwLbj0oFhX4sq2qk+vhVqGpU7AqflUrtCNygm1N5bHrBjatLzDdBp4IFpD5zSFHtSGqP5cGJN42Ga661msCueHSOagP79yjIf4TbzcUVtBLR5mcrhC9P3kbQHXyPXf4hpYBB9/daXVGy+mTF6yc7EvqoojuFGhVpQjmnzzjIKLTqNG94X/4qf+cr4ug1FuT6725kY06gIv1P8aQ8PWZsLDUy8wSxPY1VEHHnumKs2O9UMFd9M1/0OKBi9yeNAW27n6nLJsC9umKdmEPHCUVjRBOmFcrlTk9ISROml1gYKMyJ4swnRqBJN5LUVbV4DiHhhMohZQ3F3NIzpv3TNuLSJ6eryO9OFx3w8j90/vANstUhWx1BlbQPtrFFToI=
+  - secure: PT3YE6wHPLCoksOc05YLlvzARrX+e3qz1uVIR8itxobzNJwxxkxMv5QB8QycXHCea7jn+ii3iL04Syd3aOOiMA1TLWC1Xxd5kcS08XJuahWQkOPVBFVkeI+1XHIv9jFmJNdKFMkXYLcDN/vcxxTjUj2K5eZnOr9uuLa8kDV3j2TDvhvnbkgfXkR8QIzRcd0tdxNQfT12XTMM/oYkCtIoBoEZ4KoKBLpQQbqwspFlFJUFiE+tqjFpGJ4eH4mn4nAMzbLsIyhDG3LQKz+HQHdeIpTHkSonS8gou3SYY6OfWbEHcR3dOLkuw2Dm3k6bk9aBcDQiJFAPBnPb7fZ40Qgk+JWGj/4JjhDNPavbB8B2AhaeEVw2jpCJ5wN3PBlm0K4oqTgY9MhA/vGoDNVcUJDaQ5416uK7fz2+Jn/9uI0Be1/feuMFebX93EoPj/59ammJ3u1uOXMLWufhzfRQEZRLYI2HVBV2ofPQa4pv+J8FMdtsQ1m8AuDw3Pa6R5Rxb/c+vmNYRJb+tiStdybaXDF1Wpuvpw6WR3OTW/i1KvgYs8APYxKf78CCWOQdsHn/68Z6KU+S2v9rw04/quvi5MxdGhiluEKWzFAa0l39KdcpAJTbTYM6F+FkWOEQ92UTsI+Oho1xNQRi2hMC2nNeNO9MyEKP2DRLZuNYG5OS3fDo5HQ=
