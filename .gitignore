@@ -102,3 +102,4 @@ public
 
 .DS_Store
 dist/
+env.json
