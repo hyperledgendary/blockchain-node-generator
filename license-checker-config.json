@@ -1,0 +1,12 @@
+{
+    "ignore": [".git/**", "coverage/**", ".DS_Store"],
+    "license": "LICENSE.txt",
+    "licenseFormats": {
+        "dotfile": {
+            "eachLine": {
+                "prepend": "# "
+            }
+        }
+    },
+    "trailingWhitespace": "TRIM"
+}

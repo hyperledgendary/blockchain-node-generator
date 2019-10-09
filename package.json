@@ -3,12 +3,18 @@
   "version": "0.0.1",
   "description": "CLI tool that generates node files from a local network for IBM Blockchain Platform",
   "main": "dist/index.js",
+  "bin": {
+    "bc-node-add": "dist/src/index.js"
+  },
   "scripts": {
     "test": "npm run lint && npm run unit",
     "unit": "nyc mocha -r ts-node/register 'src/**/*.spec.ts'",
-    "lint": "tslint -c tslint.json 'src/**/*.ts'",
+    "lint": "npm run licensecheck && tslint -c tslint.json 'src/**/*.ts'",
     "build": "tsc",
-    "build:watch": "tsc -w"
+    "build:watch": "tsc -w",
+    "prepare": "npm run build",
+    "licensecheck": "license-check-and-add check",
+    "licenseadd": "license-check-and-add add"
   },
   "repository": {
     "type": "git",
@@ -19,9 +25,11 @@
     "blockchain",
     "platform",
     "hyperledger",
-    "fabric"
+    "fabric",
+    "vscode",
+    "extension"
   ],
-  "author": "Liam Grace",
+  "author": "liam-grace",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/liam-grace/node-file-generator/issues"
@@ -40,6 +48,7 @@
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "istanbul": "^0.4.5",
+    "license-check-and-add": "^3.0.3",
     "mocha": "^6.2.1",
     "nyc": "^14.1.1",
     "sinon": "^7.5.0",
@@ -73,9 +82,9 @@
     ],
     "all": true,
     "check-coverage": true,
-    "statements": 24.22,
-    "branches": 31.67,
-    "functions": 26.23,
-    "lines": 25.46
+    "statements": 26.44,
+    "branches": 32.81,
+    "functions": 29.51,
+    "lines": 28.05
   }
 }
