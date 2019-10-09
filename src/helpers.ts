@@ -12,10 +12,10 @@ const nodeTypes: any = {
     [CA_IMAGE_NAME]: 'fabric-ca'
 };
 
-export async function isTls(container: Dockerode.Container, isTLSEnvVar: string): Promise<string> {
+export async function isTls(container: Dockerode.Container, isTLSEnvVar: string): Promise<boolean> {
     const command = `echo $${isTLSEnvVar}`;
     const result = await executeCommand(container, ['/bin/bash', '-c', command]);
-    return result.toString('utf8');
+    return result.toString('utf8') === 'true';
 }
 
 export async function getProtocol(container: Dockerode.Container, containerInfo: ContainerInfo, isTLSEnvVar: string) {
@@ -27,7 +27,7 @@ export async function getProtocol(container: Dockerode.Container, containerInfo:
         case ORDERER_IMAGE_NAME:
             return isTLS ? 'grpcs' : 'grpc';
         case CA_IMAGE_NAME:
-            return isTls ? 'https' : 'http';
+            return isTLS ? 'https' : 'http';
     }
 }
 
@@ -86,7 +86,7 @@ export async function streamLog(stream: any): Promise<Buffer> {
             data += d.toString('utf8');
         });
         stream.on('end', () => {
-            if (!data) {
+        if (!data) {
                 resolve(Buffer.alloc(0));
             } else {
                 resolve(Buffer.from(data));
@@ -97,13 +97,6 @@ export async function streamLog(stream: any): Promise<Buffer> {
 }
 
 export async function executeCommand(container: Dockerode.Container, command: string[]): Promise <Buffer > {
-    // const exec = await container.exec.create({
-    //     AttachStdout: true,
-    //     AttachStderr: false,
-    //     Cmd: command
-    // });
-    // const stream = await exec.start({Detach: false});
-    // return streamLog(stream);
     const options = {
         Cmd: command,
         AttachStdout: true,

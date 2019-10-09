@@ -4,8 +4,11 @@
   "description": "CLI tool that generates node files from a local network for IBM Blockchain Platform",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc"
+    "test": "npm run lint && npm run unit",
+    "unit": "nyc mocha -r ts-node/register 'src/**/*.spec.ts'",
+    "lint": "tslint -c tslint.json 'src/**/*.ts'",
+    "build": "tsc",
+    "build:watch": "tsc -w"
   },
   "repository": {
     "type": "git",
@@ -25,15 +28,52 @@
   },
   "homepage": "https://github.com/liam-grace/node-file-generator#readme",
   "devDependencies": {
+    "@types/chai-as-promised": "^7.1.2",
     "@types/dockerode": "^2.5.20",
     "@types/inquirer": "^6.5.0",
+    "@types/mocha": "^5.2.7",
     "@types/node": "^12.7.9",
+    "@types/sinon": "^7.5.0",
+    "@types/sinon-as-promised": "^4.0.12",
+    "@types/sinon-chai": "^3.2.3",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "istanbul": "^0.4.5",
+    "mocha": "^6.2.1",
+    "nyc": "^14.1.1",
+    "sinon": "^7.5.0",
+    "sinon-as-promised": "^4.0.3",
+    "sinon-chai": "^3.3.0",
+    "ts-node": "^8.4.1",
     "tslint": "^5.20.0",
     "typescript": "^3.6.3"
   },
   "dependencies": {
     "dockerode": "^3.0.2",
-    "inquirer": "^7.0.0",
-    "node-docker-api": "^1.1.22"
+    "inquirer": "^7.0.0"
+  },
+  "nyc": {
+    "require": [
+      "ts-node/register"
+    ],
+    "extension": [
+      ".ts"
+    ],
+    "exclude": [
+      "coverage/**",
+      "dist/**",
+      "**/*.spec.ts",
+      "test/**"
+    ],
+    "reporter": [
+      "text-summary",
+      "html"
+    ],
+    "all": true,
+    "check-coverage": true,
+    "statements": 24.22,
+    "branches": 31.67,
+    "functions": 26.23,
+    "lines": 25.46
   }
 }
