@@ -16,11 +16,12 @@ const defaultConfig = {
 
 const config = Object.assign({}, defaultConfig);
 
-let networkId = '';
+let networkId = 'No network set';
+const networkName = process.argv[0];
 
 async function main() {
     const newDocker = new DockerHelper(config.socket);
-    const answers: any = await getDockerNetwork(newDocker);
+    const answers: any = await getDockerNetwork(newDocker, networkName);
     networkId = answers.networkId;
 
     let list = await newDocker.list();
@@ -70,25 +71,30 @@ function isCA(container: ContainerInfo): boolean {
     return container.Image.indexOf(config.CA_IMAGE_NAME) !== -1;
 }
 
-async function getDockerNetwork(docker: DockerHelper) {
+async function getDockerNetwork(docker: DockerHelper, network?: string) {
     const networks = await docker.getNetworks();
     const networkMap = new Map();
 
-    for (const network of networks) {
-        networkMap.set(network.Name, network.Id);
+    for (const net of networks) {
+        networkMap.set(net.Name, net.Id);
     }
-    const answers = await inquirer.prompt({
-        type: 'list',
-        name: 'networkId',
-        message: 'Which docker network do you want to use?',
-        default: 'node_default',
-        validate: (answer: string) => {
-            return networkMap.has(answer);
-        },
-        choices: Array.from(networkMap.keys())
-    } as any) as any;
+    let answers;
+    if (!network) {
+        answers = await inquirer.prompt({
+            type: 'list',
+            name: 'networkName',
+            message: 'Which docker network do you want to use?',
+            default: 'node_default',
+            validate: (answer: string) => {
+                return networkMap.has(answer);
+            },
+            choices: Array.from(networkMap.keys())
+        } as any) as any;
+        answers.networkId = networkMap.get(answers.networkId);
+    } else {
+        answers = {networkId: networkMap.get(networkName)};
+    }
 
-    answers.networkId = networkMap.get(answers.networkId);
     return answers;
 }
 
