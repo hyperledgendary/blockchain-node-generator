@@ -25,7 +25,7 @@ const nodeTypes: any = {
 };
 
 export async function isTls(container: Dockerode.Container, isTLSEnvVar: string): Promise<boolean> {
-    const command = `echo $${isTLSEnvVar}`;
+    const command = `echo -n $${isTLSEnvVar}`;
     const result = await executeCommand(container, ['/bin/bash', '-c', command]);
     return result.toString('utf8') === 'true';
 }
@@ -54,7 +54,7 @@ export async function getPeerTLSCert(container: Dockerode.Container, tlsRootCert
 }
 
 export async function getMspId(container: Dockerode.Container, mspIDEnvVar: string): Promise<string> {
-    const command = `echo $${mspIDEnvVar}`;
+    const command = `echo -n $${mspIDEnvVar}`;
     const result = await executeCommand(container, ['/bin/bash', '-c', command]);
     return result.toString('utf8').trim();
 }
