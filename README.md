@@ -20,8 +20,8 @@ Or with a cli interface
 
 ![How to use the CLI](docs/cli.png)
 
-This project is in no way affiliated with IBM
-
 ## Import into the IBM Blockchain Platform extension for Visual Studio Code
 
 Find more information [here](https://github.com/IBM-Blockchain/blockchain-vscode-extension#json-node-files)
+
+This project is in no way affiliated with IBM
