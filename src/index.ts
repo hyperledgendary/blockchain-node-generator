@@ -20,16 +20,17 @@ import { Orderer } from './nodes/orderer';
 import { Peer } from './nodes/peer';
 import inquirer = require('inquirer');
 import yargs = require('yargs');
+import { join } from 'path';
 
 const argv: any = yargs.argv;
-const fileName = './env.json';
 
 const defaultConfig = {
     socket: '/var/run/docker.sock',
     PEER_IMAGE_NAME: 'hyperledger/fabric-peer',
     ORDERER_IMAGE_NAME: 'hyperledger/fabric-orderer',
     CA_IMAGE_NAME: 'hyperledger/fabric-ca',
-    env_path: argv.envFilePath ? argv.envFilePath : fileName,
+    env_path: argv.envFilePath ? argv.envFilePath : './',
+    env_name: argv.envName ? argv.envName : 'env.json',
     networkName: argv.networkName ? argv.networkName : 'node_default'
 };
 
@@ -68,11 +69,13 @@ async function main() {
         const ca = new CA(container, containerInfo);
         configs.push(ca.generateConfig());
     }
+    const fullPath = buildFilePath();
     console.debug('Waiting for promises to complete');
     const nodes = await Promise.all(configs);
-    console.log(`\x1b[32m\u2714\x1b[0m Promises complete. Writing to ${config.env_path}.`);
-    writeFileSync(config.env_path, JSON.stringify(nodes));
-    console.log(`\x1b[32m\u2714\x1b[0m ${config.env_path} created.`);
+    console.log(`\x1b[32m\u2714\x1b[0m Promises complete. Writing to ${fullPath}`);
+
+    writeFileSync(fullPath, JSON.stringify(nodes));
+    console.log(`\x1b[32m\u2714\x1b[0m ${fullPath} created`);
 }
 
 function filterByNetwork(container: ContainerInfo) {
@@ -94,6 +97,10 @@ function isOrderer(container: ContainerInfo): boolean {
 
 function isCA(container: ContainerInfo): boolean {
     return container.Image.indexOf(config.CA_IMAGE_NAME) !== -1;
+}
+
+function buildFilePath() {
+    return join(config.env_path, config.env_name);
 }
 
 async function getDockerNetwork(docker: DockerHelper) {
