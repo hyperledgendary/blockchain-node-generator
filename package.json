@@ -38,6 +38,7 @@
   },
   "homepage": "https://github.com/liam-grace/blockchain-node-generator#readme",
   "devDependencies": {
+    "@semantic-release/git": "^7.0.16",
     "@semantic-release/release-notes-generator": "^7.3.0",
     "@types/chai-as-promised": "^7.1.2",
     "@types/dockerode": "^2.5.20",
