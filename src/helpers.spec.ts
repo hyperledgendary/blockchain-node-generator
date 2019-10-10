@@ -224,17 +224,16 @@ describe('Helpers', () => {
             containerStub.exec.onFirstCall().yields(null, execStub);
             execStub.start.onFirstCall().yields(null, stream);
 
-            const promise = helpers.getPeerTLSCert(containerStub as Container, 'MSP_ENV');
+            const promise = helpers.getMspId(containerStub as Container, 'MSP_ENV');
             await sleep();
-            const cert = Buffer.from('MSPID');
-            stream.emit('data', cert);
+            stream.emit('data', new Buffer('mspId'));
             stream.emit('end');
-            await expect(promise).to.eventually.equal(cert.toString('base64'));
+            await expect(promise).to.eventually.equal('mspId');
 
             expect(containerStub.exec).to.have.been.calledWith({
                 AttachStderr: false,
                 AttachStdout: true,
-                Cmd: ['/bin/bash', '-c', 'cat $MSP_ENV'],
+                Cmd: ['/bin/bash', '-c', 'echo -n $MSP_ENV'],
                 statusCodes: { 200: true, 404: 'no such exec instance', 409: 'container is paused'}
             });
         });
@@ -281,6 +280,17 @@ describe('Helpers', () => {
             execStub.start.onFirstCall().yields(new Error('Start fail'), null);
 
             await expect(helpers.getPeerTLSCert(containerStub as Container, 'MSP_ENV')).to.be.rejectedWith('Start fail');
+        });
+    });
+
+    describe('#getContainerAddress', () => {
+        it('should return nothing if a port does not exist', () => {
+            const containerInfo = {Ports: []};
+            expect(helpers.getContainerAddress(containerInfo as any)).to.equal('');
+        });
+        it('should return an array of port and IP', () => {
+            const containerInfo = {Ports: [{IP: '0.0.0.0', PublicPort: '5000'}]};
+            expect(helpers.getContainerAddress(containerInfo as any)).to.equal('0.0.0.0:5000');
         });
     });
 });
