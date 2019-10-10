@@ -226,7 +226,8 @@ describe('Helpers', () => {
 
             const promise = helpers.getMspId(containerStub as Container, 'MSP_ENV');
             await sleep();
-            stream.emit('data', new Buffer('mspId'));
+            stream.emit('data', Buffer.from('mspId'));
+
             stream.emit('end');
             await expect(promise).to.eventually.equal('mspId');
 
