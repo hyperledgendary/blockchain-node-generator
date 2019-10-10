@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /*
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -12,34 +13,34 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 import { ContainerInfo } from 'dockerode';
+import { writeFileSync } from 'fs';
 import { DockerHelper } from './docker-helper';
 import { CA } from './nodes/ca';
 import { Orderer } from './nodes/orderer';
 import { Peer } from './nodes/peer';
 import inquirer = require('inquirer');
-import { writeFileSync } from 'fs';
 import yargs = require('yargs');
 
 const argv: any = yargs.argv;
+const fileName = './env.json';
 
 const defaultConfig = {
     socket: '/var/run/docker.sock',
     PEER_IMAGE_NAME: 'hyperledger/fabric-peer',
     ORDERER_IMAGE_NAME: 'hyperledger/fabric-orderer',
     CA_IMAGE_NAME: 'hyperledger/fabric-ca',
-    env_file: 'env.json'
+    env_path: argv.envFilePath ? argv.envFilePath : fileName,
+    networkName: argv.networkName ? argv.networkName : 'node_default'
 };
 
 const config = Object.assign({}, defaultConfig);
 
-let networkName = 'No network set';
-
-async function main(network?: string) {
+async function main() {
     const newDocker = new DockerHelper(config.socket);
-    const answers: any = await getDockerNetwork(newDocker, network);
-    networkName = answers.networkName;
+    await getDockerNetwork(newDocker);
 
     let list = await newDocker.list();
+    console.log(`\x1b[32m\u2714\x1b[0m Found ${list.length} docker containers.`);
     list = list.filter(filterByNetwork);
     const configs = [];
 
@@ -47,24 +48,31 @@ async function main(network?: string) {
     const orderers = list.filter(isOrderer);
     const cas = list.filter(isCA);
 
+    console.log(`\x1b[32m\u2714\x1b[0m Found ${peers.length} Peers.`);
     for (const containerInfo of peers) {
         const container = await newDocker.getContainer(containerInfo);
         const peer = new Peer(container, containerInfo);
         configs.push(peer.generateConfig());
     }
 
+    console.log(`\x1b[32m\u2714\x1b[0m Found ${orderers.length} Orderers.`);
     for (const containerInfo of orderers) {
         const container = await newDocker.getContainer(containerInfo);
         const peer = new Orderer(container, containerInfo);
         configs.push(peer.generateConfig());
     }
 
+    console.log(`\x1b[32m\u2714\x1b[0m Found ${cas.length} CAs.`);
     for (const containerInfo of cas) {
         const container = await newDocker.getContainer(containerInfo);
         const ca = new CA(container, containerInfo);
         configs.push(ca.generateConfig());
     }
-    writeFileSync(config.env_file, JSON.stringify(await Promise.all(configs)));
+    console.debug('Waiting for promises to complete');
+    const nodes = await Promise.all(configs);
+    console.log(`\x1b[32m\u2714\x1b[0m Promises complete. Writing to ${config.env_path}.`);
+    writeFileSync(config.env_path, JSON.stringify(nodes));
+    console.log(`\x1b[32m\u2714\x1b[0m ${config.env_path} created.`);
 }
 
 function filterByNetwork(container: ContainerInfo) {
@@ -73,8 +81,7 @@ function filterByNetwork(container: ContainerInfo) {
     if (container.State !== 'running') {
         return false;
     }
-
-    return !!networks[networkName];
+    return !!networks[config.networkName];
 }
 
 function isPeer(container: ContainerInfo): boolean {
@@ -89,7 +96,7 @@ function isCA(container: ContainerInfo): boolean {
     return container.Image.indexOf(config.CA_IMAGE_NAME) !== -1;
 }
 
-async function getDockerNetwork(docker: DockerHelper, network?: string) {
+async function getDockerNetwork(docker: DockerHelper) {
     const networks = await docker.getNetworks();
     const networkMap = new Map();
 
@@ -97,25 +104,26 @@ async function getDockerNetwork(docker: DockerHelper, network?: string) {
         networkMap.set(net.Name, net.Id);
     }
     let answers;
-    if (!network) {
+    if (!argv.networkName) {
         answers = await inquirer.prompt({
             type: 'list',
             name: 'networkName',
             message: 'Which docker network do you want to use?',
-            default: 'node_default',
+            default: config.networkName,
             validate: (answer: string) => {
                 return networkMap.has(answer);
             },
             choices: Array.from(networkMap.keys())
         } as any) as any;
+        config.networkName = answers.networkName;
     } else {
-        if (!networkMap.has(network)) {
-            throw new Error(`Network ${network} does not exist`);
+        if (!networkMap.has(argv.networkName)) {
+            throw new Error(`Network ${argv.networkName} does not exist`);
         }
-        answers = {networkName: network};
+        config.networkName = argv.networkName;
     }
 
     return answers;
 }
 
-main(argv.networkName).catch(console.error);
+main().catch(console.error);
