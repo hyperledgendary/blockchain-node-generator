@@ -6,9 +6,11 @@ branches:
     prerelease: true
   - name: master
 
-verifyConditions:
+plugins:
   - "@semantic-release/github"
   - "@semantic-release/npm"
+  - "@semantic-release/commit-analyzer"
+  - "@semantic-release/release-notes-generator"
 generateNotes: []
 prepare: []
 publish: []
