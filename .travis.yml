@@ -1,19 +1,15 @@
 language: node_js
 node_js:
 - lts/*
-jobs:
-  include:
-  - stage: release
-    node_js: lts/*
-    deploy:
-      provider: script
-      skip_cleanup: true
-      script:
-        - npx semantic-release
-      on:
-        branches:
-          - alpha
-          - next
+
+deploy:
+- provider: script
+  skip_cleanup: true
+  script:
+    - npm run semantic-release
+  on:
+    all_branches: true
+
 env:
   global:
   - secure: XTI8OI/S/J93sHGNw6jX6HShC4o3Tcqb0uZYMXXbO2Yk57UmPtUgOek0tYkG94nnO7O8pLnvPk8vCfeZhuW87KExzrES17xLHUkaFOgcgREPteoCY0tYMw+uSFLRz2XzKXN59s2OAbYpwt1K7NydjzH8N1ahRYpJLf6cvWJTkUucck6VJ9UPQaXpqHOZ7Zt3zhL7drpK+GuCnB2IFkg8dQixGSCtRnlEH1jpSqAILzY4OEn7rSbWZ6BdXNHwiZ0Axp/zY3WvCAeon1hChZztWo4tGzbQdnBQHaivbfrO81i/KQZspwLbj0oFhX4sq2qk+vhVqGpU7AqflUrtCNygm1N5bHrBjatLzDdBp4IFpD5zSFHtSGqP5cGJN42Ga661msCueHSOagP79yjIf4TbzcUVtBLR5mcrhC9P3kbQHXyPXf4hpYBB9/daXVGy+mTF6yc7EvqoojuFGhVpQjmnzzjIKLTqNG94X/4qf+cr4ug1FuT6725kY06gIv1P8aQ8PWZsLDUy8wSxPY1VEHHnumKs2O9UMFd9M1/0OKBi9yeNAW27n6nLJsC9umKdmEPHCUVjRBOmFcrlTk9ISROml1gYKMyJ4swnRqBJN5LUVbV4DiHhhMohZQ3F3NIzpv3TNuLSJ6eryO9OFx3w8j90/vANstUhWx1BlbQPtrFFToI=
