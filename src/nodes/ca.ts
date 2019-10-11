@@ -13,6 +13,7 @@ limitations under the License.
 */
 import { Node } from './node';
 import { Container, ContainerInfo } from 'dockerode';
+import { executeCommand } from '../helpers';
 
 export class CA extends Node {
     constructor(container: Container, containerInfo: ContainerInfo) {
@@ -21,7 +22,7 @@ export class CA extends Node {
 
     async generateConfig() {
         const def: any = await super.generateConfig();
-        def['ca_name'] = this.getContainerName();
+        def['ca_name'] = await this.getCAName();
         return def;
     }
 
@@ -31,6 +32,12 @@ export class CA extends Node {
         name = name.substr(0, name.indexOf('.'));
         name = kebabToPascal(name);
         return name.substr(0, name.length - 1) + name.charAt(name.length - 1).toUpperCase();
+    }
+
+    async getCAName() {
+        const command = `echo -n $FABRIC_CA_SERVER_CA_NAME`;
+        const result = await executeCommand(this.container, ['/bin/bash', '-c', command]);
+        return result.toString('utf8').trim();
     }
 }
 

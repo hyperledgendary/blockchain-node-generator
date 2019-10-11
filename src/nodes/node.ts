@@ -80,7 +80,7 @@ export class Node {
 
     isRunningLocally() {
         const addressInfo = this.getContainerAddress();
-        if (addressInfo.indexOf('0.0.0.0') !== -1) {
+        if (addressInfo.indexOf('0.0.0.0') !== -1 || addressInfo.indexOf('localhost') !== -1) {
             return true;
         } else {
             return false;
