@@ -1,6 +1,6 @@
 {
   "name": "blockchain-node-generator",
-  "version": "1.0.0-alpha.5",
+  "version": "1.0.0-alpha.6",
   "description": "CLI tool that generates node files from a local network for IBM Blockchain Platform",
   "main": "dist/index.js",
   "bin": {
