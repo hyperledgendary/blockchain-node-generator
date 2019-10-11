@@ -291,7 +291,11 @@ describe('Helpers', () => {
         });
         it('should return an array of port and IP', () => {
             const containerInfo = {Ports: [{IP: '0.0.0.0', PublicPort: '5000'}]};
-            expect(helpers.getContainerAddress(containerInfo as any)).to.equal('0.0.0.0:5000');
+            expect(helpers.getContainerAddress(containerInfo as any)).to.equal('localhost:5000');
+        });
+        it('should return an array of port and IP', () => {
+            const containerInfo = {Ports: [{IP: '127.0.0.1', PublicPort: '5000'}]};
+            expect(helpers.getContainerAddress(containerInfo as any)).to.equal('127.0.0.1:5000');
         });
     });
 });

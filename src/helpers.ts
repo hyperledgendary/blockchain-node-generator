@@ -68,6 +68,9 @@ export function getContainerAddress(container: ContainerInfo): string {
     const port = ports[0];
     let parts: string[] = [];
     if (port) {
+        if (port.IP === '0.0.0.0') {
+            port.IP = 'localhost';
+        }
         parts = [port.IP, port.PublicPort as any];
     }
     return parts.join(':');
