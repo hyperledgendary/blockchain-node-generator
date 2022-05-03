@@ -65,8 +65,10 @@
     "typescript": "^3.6.3"
   },
   "dependencies": {
+    "@types/source-map-support": "^0.5.3",
     "dockerode": "^3.0.2",
     "inquirer": "^7.0.0",
+    "source-map-support": "^0.5.13",
     "yargs": "^14.2.0"
   },
   "nyc": {

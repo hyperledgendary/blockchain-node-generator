@@ -26,7 +26,7 @@ const nodeTypes: any = {
 
 export async function isTls(container: Dockerode.Container, isTLSEnvVar: string): Promise<boolean> {
     const command = `echo -n $${isTLSEnvVar}`;
-    const result = await executeCommand(container, ['/bin/bash', '-c', command]);
+    const result = await executeCommand(container, ['/bin/sh', '-c', command]);
     return result.toString('utf8') === 'true';
 }
 
@@ -45,7 +45,8 @@ export async function getProtocol(container: Dockerode.Container, containerInfo:
 
 export async function getPeerTLSCert(container: Dockerode.Container, tlsRootCertEnvVar: string): Promise<string> {
     const command = `cat $${tlsRootCertEnvVar}`;
-    const file = await executeCommand(container, ['/bin/bash', '-c', command]);
+    console.log(container.id+"  "+command);
+    const file = await executeCommand(container, ['/bin/sh', '-c', command]);
     if (file.length === 0) {
         throw new Error('No cert file read');
     }
@@ -55,7 +56,7 @@ export async function getPeerTLSCert(container: Dockerode.Container, tlsRootCert
 
 export async function getMspId(container: Dockerode.Container, mspIDEnvVar: string): Promise<string> {
     const command = `echo -n $${mspIDEnvVar}`;
-    const result = await executeCommand(container, ['/bin/bash', '-c', command]);
+    const result = await executeCommand(container, ['/bin/sh', '-c', command]);
     return result.toString('utf8').trim();
 }
 

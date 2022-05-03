@@ -60,7 +60,7 @@ describe('Helpers', () => {
             expect(containerStub.exec).to.have.been.calledWith({
                 AttachStderr: false,
                 AttachStdout: true,
-                Cmd: ['/bin/bash', '-c', 'echo -n $SOME_ENV_VAR'],
+                Cmd: ['/bin/sh', '-c', 'echo -n $SOME_ENV_VAR'],
                 statusCodes: { 200: true, 404: 'no such exec instance', 409: 'container is paused'}
             });
         });
@@ -77,7 +77,7 @@ describe('Helpers', () => {
             expect(containerStub.exec).to.have.been.calledWith({
                 AttachStderr: false,
                 AttachStdout: true,
-                Cmd: ['/bin/bash', '-c', 'echo -n $SOME_ENV_VAR'],
+                Cmd: ['/bin/sh', '-c', 'echo -n $SOME_ENV_VAR'],
                 statusCodes: { 200: true, 404: 'no such exec instance', 409: 'container is paused'}
             });
         });
@@ -94,7 +94,7 @@ describe('Helpers', () => {
             expect(containerStub.exec).to.have.been.calledWith({
                 AttachStderr: false,
                 AttachStdout: true,
-                Cmd: ['/bin/bash', '-c', 'echo -n $SOME_ENV_VAR'],
+                Cmd: ['/bin/sh', '-c', 'echo -n $SOME_ENV_VAR'],
                 statusCodes: { 200: true, 404: 'no such exec instance', 409: 'container is paused'}
             });
             // tslint:disable-next-line:no-unused-expression
@@ -195,7 +195,7 @@ describe('Helpers', () => {
             expect(containerStub.exec).to.have.been.calledWith({
                 AttachStderr: false,
                 AttachStdout: true,
-                Cmd: ['/bin/bash', '-c', 'cat $THIS_ENV_VAR'],
+                Cmd: ['/bin/sh', '-c', 'cat $THIS_ENV_VAR'],
                 statusCodes: { 200: true, 404: 'no such exec instance', 409: 'container is paused'}
             });
         });
@@ -233,7 +233,7 @@ describe('Helpers', () => {
             expect(containerStub.exec).to.have.been.calledWith({
                 AttachStderr: false,
                 AttachStdout: true,
-                Cmd: ['/bin/bash', '-c', 'echo -n $MSP_ENV'],
+                Cmd: ['/bin/sh', '-c', 'echo -n $MSP_ENV'],
                 statusCodes: { 200: true, 404: 'no such exec instance', 409: 'container is paused'}
             });
         });
