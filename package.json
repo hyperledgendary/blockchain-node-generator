@@ -53,7 +53,7 @@
     "chai-as-promised": "^7.1.1",
     "istanbul": "^0.4.5",
     "license-check-and-add": "^3.0.3",
-    "mocha": "^6.2.1",
+    "mocha": "^10.2.0",
     "nyc": "^14.1.1",
     "semantic-release": "^16.0.0-beta.25",
     "sinon": "^7.5.0",
